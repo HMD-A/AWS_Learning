@@ -1,11 +1,13 @@
 from datetime import datetime
 import json
+import os
 from pytz import timezone
 from sklearn.datasets import load_breast_cancer
 from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from sklearn.metrics import classification_report
+import boto3
 
 def handler(event, context):
     tokyo_dt = datetime.now(timezone('Asia/Tokyo'))
@@ -28,13 +30,22 @@ def handler(event, context):
     accuracy = model.score(x_val, y_val)
     report = classification_report(y_val, y_pred, output_dict=True)
 
-    return {
-        'statusCode': 200,
-        'body': json.dumps({
+    s3 = boto3.resource('s3')
+    bucket_name = os.environ['S3_BUCKET_NAME']
+    bucket = s3.Bucket(bucket_name)
+    body = json.dumps({
             'message': 'Model trained successfully',
             'timestamp': tokyo_dt.strftime('%Y-%m-%d %H:%M:%S'),
             'accuracy': accuracy,
             'classification_report': report
         }, ensure_ascii=False)
+    response = bucket.put_object(Body=body, Key="model_training_result.json")
+
+    return {
+        'statusCode': 200,
+        'body': json.dumps({
+            'message': 'Success',
+            's3_location': f"s3://{bucket_name}/model_training_result.json"
+        })
     }
 

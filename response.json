@@ -1,0 +1,1 @@
+{"errorMessage": "Unable to marshal response: Object of type s3.Object is not JSON serializable", "errorType": "Runtime.MarshalError", "requestId": "fc7931c4-42ff-46bf-9ba6-969691a62428", "stackTrace": []}
